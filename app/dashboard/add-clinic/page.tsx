@@ -49,7 +49,7 @@ export default function AddClinicPage() {
           id: authData.user.id,
           name: values.name,
           email: values.email,
-          password: "", // The actual password is managed by Supabase Auth
+          password: values.password,
           user_type: "clinic",
         });
 

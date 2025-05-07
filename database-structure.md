@@ -2,52 +2,74 @@
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- Tabela de Users (centralizada)
-CREATE TABLE users (
-id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-name VARCHAR(255) NOT NULL,
-email VARCHAR(255) UNIQUE NOT NULL,
-password VARCHAR(255) NOT NULL,
-user_type VARCHAR(50) CHECK (user_type IN ('admin', 'clinic')) NOT NULL,
-clinic_id UUID, -- Só será preenchido se o user_type for 'clinic'
-created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
-);
+create table public.users (
+id uuid not null default gen_random_uuid (),
+name character varying(255) not null,
+email character varying(255) not null,
+password character varying(255) not null,
+user_type character varying(50) not null,
+clinic_id uuid null,
+created_at timestamp with time zone null default CURRENT_TIMESTAMP,
+constraint users_pkey primary key (id),
+constraint users_email_key unique (email),
+constraint users_user_type_check check (
+(
+(user_type)::text = any (
+(
+array[
+'admin'::character varying,
+'clinic'::character varying
+]
+)::text[]
+)
+)
+)
+) TABLESPACE pg_default;
 
 -- Tabela de Clínicas
-CREATE TABLE clinics (
-id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-user_id UUID REFERENCES users(id) ON DELETE CASCADE, -- Relacionamento com o usuário do tipo 'clinic'
-name VARCHAR(255) NOT NULL,
-address VARCHAR(255),
-phone VARCHAR(20),
-email VARCHAR(255),
-created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-active BOOLEAN DEFAULT TRUE
-);
+create table public.clinics (
+id uuid not null default gen_random_uuid (),
+user_id uuid null,
+name character varying(255) not null,
+address character varying(255) null,
+phone character varying(20) null,
+email character varying(255) null,
+created_at timestamp with time zone null default CURRENT_TIMESTAMP,
+active boolean null default true,
+constraint clinics_pkey primary key (id),
+constraint clinics_user_id_fkey foreign KEY (user_id) references users (id) on delete CASCADE
+) TABLESPACE pg_default;
 
 -- Tabela de Pacientes
-CREATE TABLE patients (
-id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-clinic_id UUID REFERENCES clinics(id) ON DELETE CASCADE, -- Relacionamento com a tabela clinics
-name VARCHAR(255) NOT NULL,
-birth_date DATE,
-exam_date DATE,
-gender VARCHAR(10),
-email VARCHAR(255),
-phone VARCHAR(20),
-address VARCHAR(255),
-created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-active BOOLEAN DEFAULT TRUE,
-appeared_on_exam BOOLEAN
-
-);
+create table public.patients (
+id uuid not null default gen_random_uuid (),
+clinic_id uuid null,
+name character varying(255) not null,
+birth_date date null,
+gender character varying(10) null,
+email character varying(255) null,
+phone character varying(20) null,
+address character varying(255) null,
+created_at timestamp with time zone null default CURRENT_TIMESTAMP,
+active boolean null default true,
+rg text null,
+cpf text null,
+sector text null,
+position text null,
+constraint patients_pkey primary key (id),
+constraint patients_clinic_id_fkey foreign KEY (clinic_id) references clinics (id) on delete CASCADE
+) TABLESPACE pg_default;
 
 -- Tabela de Exames
-CREATE TABLE exams (
-id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-patient_id UUID REFERENCES patients(id) ON DELETE CASCADE, -- Relacionamento com a tabela pacientes
-exam_type VARCHAR(255) NOT NULL,
-exam_date DATE NOT NULL,
-result TEXT,
-notes TEXT,
-created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
-);
+create table public.exams (
+id uuid not null default gen_random_uuid (),
+patient_id uuid null,
+exam_type character varying(255) not null,
+exam_date date not null,
+result text null,
+notes text null,
+created_at timestamp with time zone null default CURRENT_TIMESTAMP,
+appeared_on_exam boolean null,
+constraint exams_pkey primary key (id),
+constraint exams_patient_id_fkey foreign KEY (patient_id) references patients (id) on delete CASCADE
+) TABLESPACE pg_default;

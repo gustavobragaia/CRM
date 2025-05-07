@@ -28,16 +28,17 @@ const handleSignup = async (
   const supabase = getSupabaseClient();
 
   // Create auth user
-  const { data: authData, error: authError } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: {
-        name,
-        user_type: userType,
-      },
-    },
-  });
+  const { data: authData, error: authError } =
+    await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          name,
+          user_type: userType,
+        }
+      }
+    });
 
   if (authError) {
     console.error("Error signing up:", authError.message);
@@ -74,26 +75,28 @@ export function SignupForm({
     e.preventDefault();
     setIsLoading(true);
     setError(null);
-    
+
     const formData = new FormData(e.currentTarget);
-    const email = formData.get('email') as string;
-    const password = formData.get('password') as string;
-    const name = formData.get('name') as string;
-    const userType = formData.get('userType') as string || 'admin'; // Default value
-    
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+    const name = formData.get("name") as string;
+    const userType = (formData.get("userType") as string) || "admin"; // Default value
+
     // Validate password confirmation
-    const confirmPassword = formData.get('confirmPassword') as string;
+    const confirmPassword = formData.get("confirmPassword") as string;
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError("Passwords do not match");
       setIsLoading(false);
       return;
     }
-    
+
     try {
       await handleSignup(email, password, name, userType);
     } catch (err) {
       console.error("Signup error:", err);
-      setError(err instanceof Error ? err.message : "An unexpected error occurred");
+      setError(
+        err instanceof Error ? err.message : "An unexpected error occurred"
+      );
       setIsLoading(false);
     }
   };
@@ -117,7 +120,14 @@ export function SignupForm({
               )}
               <div className="grid gap-3">
                 <Label htmlFor="name">Full Name</Label>
-                <Input id="name" name="name" type="text" placeholder="John Doe" required disabled={isLoading} />
+                <Input
+                  id="name"
+                  name="name"
+                  type="text"
+                  placeholder="John Doe"
+                  required
+                  disabled={isLoading}
+                />
               </div>
               <div className="grid gap-3">
                 <Label htmlFor="email">Email</Label>
@@ -132,11 +142,23 @@ export function SignupForm({
               </div>
               <div className="grid gap-3">
                 <Label htmlFor="password">Password</Label>
-                <Input id="password" name="password" type="password" required disabled={isLoading} />
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  required
+                  disabled={isLoading}
+                />
               </div>
               <div className="grid gap-3">
                 <Label htmlFor="confirmPassword">Confirm Password</Label>
-                <Input id="confirmPassword" name="confirmPassword" type="password" required disabled={isLoading} />
+                <Input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type="password"
+                  required
+                  disabled={isLoading}
+                />
               </div>
               <input type="hidden" name="userType" value="admin" />
               <div className="flex flex-col gap-3">

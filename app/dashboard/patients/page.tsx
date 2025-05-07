@@ -1,21 +1,16 @@
+// This file should remain a server component
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { getPatients } from "@/hooks/use-patients";
-import { DataTable } from "./data-table";
-import { columns } from "./columns";
+import { PatientsClientWrapper } from "./patients-client-wrapper";
 
-export default async function PatientsPage() {
-  const patients = await getPatients();
-
+export default function PatientsPage() {
   return (
     <SidebarProvider
-      style={
-        {
-          "--sidebar-width": "calc(var(--spacing) * 72)",
-          "--header-height": "calc(var(--spacing) * 12)",
-        } as React.CSSProperties
-      }
+      style={{
+        "--sidebar-width": "calc(var(--spacing) * 72)",
+        "--header-height": "calc(var(--spacing) * 12)",
+      } as React.CSSProperties}
     >
       <AppSidebar variant="inset" />
       <SidebarInset>
@@ -27,7 +22,7 @@ export default async function PatientsPage() {
                 <h1 className="text-2xl font-bold tracking-tight mb-4">
                   Patients
                 </h1>
-                <DataTable columns={columns} data={patients} />
+                <PatientsClientWrapper />
               </div>
             </div>
           </div>

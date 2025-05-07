@@ -15,7 +15,9 @@ export default function AddPatientPage() {
   const router = useRouter();
   const { user, loading } = useCurrentUser();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const [clinics, setClinics] = React.useState<Array<{ id: string; name: string }>>([]);
+  const [clinics, setClinics] = React.useState<
+    Array<{ id: string; name: string }>
+  >([]);
   const [loadingClinics, setLoadingClinics] = React.useState(false);
 
   // Fetch clinics when component mounts if user is admin
@@ -57,7 +59,7 @@ export default function AddPatientPage() {
     setIsSubmitting(true);
     try {
       const supabase = getSupabaseClient();
-      
+
       // Determine the clinic_id based on user role
       let clinic_id;
       if (user.role === "admin") {
@@ -79,13 +81,19 @@ export default function AddPatientPage() {
         .insert({
           clinic_id,
           name: values.name,
-          birth_date: values.birth_date ? values.birth_date.toISOString().split('T')[0] : null,
-          exam_date: values.exam_date ? values.exam_date.toISOString().split('T')[0] : null,
+          birth_date: values.birth_date
+            ? values.birth_date.toISOString().split("T")[0]
+            : null,
           gender: values.gender || null,
           email: values.email || null,
           phone: values.phone || null,
           address: values.address || null,
-          active: true
+          // New fields from database structure
+          rg: values.rg || null,
+          cpf: values.cpf || null,
+          sector: values.sector || null,
+          position: values.position || null,
+          active: true,
         })
         .select()
         .single();
@@ -160,9 +168,9 @@ export default function AddPatientPage() {
                     <p>Loading clinics...</p>
                   </div>
                 ) : (
-                  <PatientForm 
-                    onSubmit={onSubmit} 
-                    isSubmitting={isSubmitting} 
+                  <PatientForm
+                    onSubmit={onSubmit}
+                    isSubmitting={isSubmitting}
                     showClinicSelector={user?.role === "admin"}
                     clinics={clinics}
                   />

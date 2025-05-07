@@ -30,6 +30,11 @@ export const patientSchema = z.object({
   created_at: z.string(),
   active: z.boolean(),
   appeared_on_exam: z.boolean().nullable(),
+  // New fields from database structure
+  rg: z.string().nullable().optional(),
+  cpf: z.string().nullable().optional(),
+  sector: z.string().nullable().optional(),
+  position: z.string().nullable().optional(),
 });
 
 export type Patient = z.infer<typeof patientSchema>;

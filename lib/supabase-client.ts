@@ -1,11 +1,6 @@
-import { createBrowserClient } from './supabase';
+import { supabase } from './supabase/client';
 
-// Create a singleton instance of the Supabase client for client components
-let supabaseClient: ReturnType<typeof createBrowserClient> | null = null;
-
+// Export a function to get the Supabase client for client components
 export const getSupabaseClient = () => {
-  if (!supabaseClient) {
-    supabaseClient = createBrowserClient();
-  }
-  return supabaseClient;
+  return supabase;
 };

@@ -8,7 +8,7 @@ import { Patient } from "@/app/dashboard/patients/columns"
  * @returns Array of patients
  */
 export async function getPatients(): Promise<Patient[]> {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
   
   const { data, error } = await supabase
     .from('patients')
@@ -30,7 +30,7 @@ export async function getPatients(): Promise<Patient[]> {
  * @returns Patient object or null if not found
  */
 export async function getPatientById(id: string): Promise<Patient | null> {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
   
   const { data, error } = await supabase
     .from('patients')
@@ -52,7 +52,7 @@ export async function getPatientById(id: string): Promise<Patient | null> {
  * @returns Array of patients
  */
 export async function getPatientsByClinic(clinicId: string): Promise<Patient[]> {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
   
   const { data, error } = await supabase
     .from('patients')

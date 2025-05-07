@@ -11,6 +11,7 @@ export interface UserData {
   avatar: string;
   role?: 'admin' | 'clinic'; // User role for access control
   id?: string; // User ID from Supabase
+  clinic_id?: string; // Clinic ID for clinic users
 }
 
 /**
@@ -47,6 +48,24 @@ export function useCurrentUser() {
             avatar: data.user.user_metadata?.avatar_url || "",
             role: data.user.user_metadata?.user_type || undefined,
           };
+          
+          // If user is a clinic user, fetch their clinic_id from the users table
+          if (userData.role === 'clinic') {
+            try {
+              const { data: userRecord, error: userError } = await supabase
+                .from('users')
+                .select('clinic_id')
+                .eq('id', data.user.id)
+                .single();
+              
+              if (userRecord && !userError) {
+                userData.clinic_id = userRecord.clinic_id;
+              }
+            } catch (err) {
+              console.error("Error fetching clinic_id:", err);
+            }
+          }
+          
           setUser(userData);
         } else {
           // Handle case where no user is logged in

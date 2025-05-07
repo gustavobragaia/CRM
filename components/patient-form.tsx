@@ -49,7 +49,6 @@ const formSchema = z.object({
     message: "Patient name must be at least 2 characters.",
   }),
   birth_date: z.date().optional(),
-  exam_date: z.date().optional(),
   gender: z.string().optional(),
   email: z
     .string()
@@ -61,7 +60,11 @@ const formSchema = z.object({
   phone: z.string().optional(),
   address: z.string().optional(),
   clinic_id: z.string().optional(),
-  appeared_on_exam: z.boolean().optional(),
+  // New fields from database structure
+  rg: z.string().optional().or(z.literal("")),
+  cpf: z.string().optional().or(z.literal("")),
+  sector: z.string().optional().or(z.literal("")),
+  position: z.string().optional().or(z.literal(""))
 });
 
 export type PatientFormValues = z.infer<typeof formSchema>;
@@ -88,8 +91,11 @@ export function PatientForm({
     address: "",
     gender: "",
     clinic_id: "",
-    exam_date: undefined,
-    appeared_on_exam: false,
+    // New fields default values
+    rg: "",
+    cpf: "",
+    sector: "",
+    position: "",
   },
   isSubmitting = false,
   showClinicSelector = false,
@@ -100,9 +106,6 @@ export function PatientForm({
   // State for calendar dates
   const [birthCalendarDate, setBirthCalendarDate] = useState<Date | undefined>(
     defaultValues.birth_date
-  );
-  const [examCalendarDate, setExamCalendarDate] = useState<Date | undefined>(
-    defaultValues.exam_date
   );
 
   // Initialize form with react-hook-form and zod resolver
@@ -135,374 +138,313 @@ export function PatientForm({
             onSubmit={form.handleSubmit(handleSubmit)}
             className="space-y-6"
           >
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Patient Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter patient full name" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="birth_date"
-                render={({ field }) => {
-                  // Update birth calendar date when field value changes
-                  useEffect(() => {
-                    if (field.value) {
-                      setBirthCalendarDate(field.value);
-                    }
-                  }, [field.value]);
-
-                  // Handler for month change
-                  const handleMonthChange = (value: string) => {
-                    const currentDate = birthCalendarDate || new Date();
-                    const newDate = new Date(currentDate);
-                    newDate.setMonth(parseInt(value));
-                    setBirthCalendarDate(newDate);
-                    field.onChange(newDate);
-                  };
-
-                  // Handler for year change
-                  const handleYearChange = (value: string) => {
-                    const currentDate = birthCalendarDate || new Date();
-                    const newDate = new Date(currentDate);
-                    newDate.setFullYear(parseInt(value));
-                    setBirthCalendarDate(newDate);
-                    field.onChange(newDate);
-                  };
-
-                  return (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>Date of Birth</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant={"outline"}
-                              className={cn(
-                                "w-full pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              {field.value ? (
-                                format(field.value, "PPP")
-                              ) : (
-                                <span>Pick a date</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <div className="p-3">
-                            <div className="mb-2 flex justify-center gap-2">
-                              <Select
-                                value={
-                                  field.value
-                                    ? getMonth(field.value).toString()
-                                    : getMonth(new Date()).toString()
-                                }
-                                onValueChange={handleMonthChange}
-                              >
-                                <SelectTrigger className="w-[120px]">
-                                  <SelectValue placeholder="Month" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {[
-                                    "January",
-                                    "February",
-                                    "March",
-                                    "April",
-                                    "May",
-                                    "June",
-                                    "July",
-                                    "August",
-                                    "September",
-                                    "October",
-                                    "November",
-                                    "December",
-                                  ].map((month, index) => (
-                                    <SelectItem
-                                      key={month}
-                                      value={index.toString()}
-                                    >
-                                      {month}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-
-                              <Select
-                                value={
-                                  field.value
-                                    ? getYear(field.value).toString()
-                                    : getYear(new Date()).toString()
-                                }
-                                onValueChange={handleYearChange}
-                              >
-                                <SelectTrigger className="w-[100px]">
-                                  <SelectValue placeholder="Year" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {Array.from({ length: 125 }, (_, i) => {
-                                    const year = getYear(new Date()) - i;
-                                    return (
-                                      <SelectItem
-                                        key={year}
-                                        value={year.toString()}
-                                      >
-                                        {year}
-                                      </SelectItem>
-                                    );
-                                  })}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <Calendar
-                              mode="single"
-                              selected={field.value}
-                              onSelect={(date) => {
-                                field.onChange(date);
-                                setBirthCalendarDate(date);
-                              }}
-                              defaultMonth={birthCalendarDate}
-                              month={birthCalendarDate}
-                              disabled={(date) =>
-                                date > new Date() ||
-                                date < new Date("1900-01-01")
-                              }
-                              initialFocus
-                            />
-                          </div>
-                        </PopoverContent>
-                      </Popover>
+            {/* Patient Data Section */}
+            <div className="mb-6">
+              <h3 className="text-lg font-medium mb-4">Patient Data</h3>
+              <div className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Patient Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter patient full name" {...field} />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
-                  );
-                }}
-              />
+                  )}
+                />
 
-              <FormField
-                control={form.control}
-                name="gender"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Gender</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select gender" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="male">Male</SelectItem>
-                        <SelectItem value="female">Female</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <FormField
+                    control={form.control}
+                    name="birth_date"
+                    render={({ field }) => {
+                      // Update birth calendar date when field value changes
+                      useEffect(() => {
+                        if (field.value) {
+                          setBirthCalendarDate(field.value);
+                        }
+                      }, [field.value]);
 
-            <FormField
-              control={form.control}
-              name="exam_date"
-              render={({ field }) => {
-                // Update exam calendar date when field value changes
-                useEffect(() => {
-                  if (field.value) {
-                    setExamCalendarDate(field.value);
-                  }
-                }, [field.value]);
+                      // Handler for month change
+                      const handleMonthChange = (value: string) => {
+                        const currentDate = birthCalendarDate || new Date();
+                        const newDate = new Date(currentDate);
+                        newDate.setMonth(parseInt(value));
+                        setBirthCalendarDate(newDate);
+                        field.onChange(newDate);
+                      };
 
-                // Handler for month change
-                const handleMonthChange = (value: string) => {
-                  const currentDate = examCalendarDate || new Date();
-                  const newDate = new Date(currentDate);
-                  newDate.setMonth(parseInt(value));
-                  setExamCalendarDate(newDate);
-                  field.onChange(newDate);
-                };
+                      // Handler for year change
+                      const handleYearChange = (value: string) => {
+                        const currentDate = birthCalendarDate || new Date();
+                        const newDate = new Date(currentDate);
+                        newDate.setFullYear(parseInt(value));
+                        setBirthCalendarDate(newDate);
+                        field.onChange(newDate);
+                      };
 
-                // Handler for year change
-                const handleYearChange = (value: string) => {
-                  const currentDate = examCalendarDate || new Date();
-                  const newDate = new Date(currentDate);
-                  newDate.setFullYear(parseInt(value));
-                  setExamCalendarDate(newDate);
-                  field.onChange(newDate);
-                };
-
-                return (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Exam Date</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant={"outline"}
-                            className={cn(
-                              "w-full pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground"
-                            )}
-                          >
-                            {field.value ? (
-                              format(field.value, "PPP")
-                            ) : (
-                              <span>Pick a date</span>
-                            )}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <div className="p-3">
-                          <div className="mb-2 flex justify-center gap-2">
-                            <Select
-                              value={
-                                field.value
-                                  ? getMonth(field.value).toString()
-                                  : getMonth(new Date()).toString()
-                              }
-                              onValueChange={handleMonthChange}
-                            >
-                              <SelectTrigger className="w-[120px]">
-                                <SelectValue placeholder="Month" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {[
-                                  "January",
-                                  "February",
-                                  "March",
-                                  "April",
-                                  "May",
-                                  "June",
-                                  "July",
-                                  "August",
-                                  "September",
-                                  "October",
-                                  "November",
-                                  "December",
-                                ].map((month, index) => (
-                                  <SelectItem
-                                    key={month}
-                                    value={index.toString()}
+                      return (
+                        <FormItem className="flex flex-col">
+                          <FormLabel>Date of Birth</FormLabel>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant={"outline"}
+                                  className={cn(
+                                    "w-full pl-3 text-left font-normal",
+                                    !field.value && "text-muted-foreground"
+                                  )}
+                                >
+                                  {field.value ? (
+                                    format(field.value, "PPP")
+                                  ) : (
+                                    <span>Pick a date</span>
+                                  )}
+                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <div className="p-3">
+                                <div className="mb-2 flex justify-center gap-2">
+                                  <Select
+                                    value={
+                                      field.value
+                                        ? getMonth(field.value).toString()
+                                        : getMonth(new Date()).toString()
+                                    }
+                                    onValueChange={handleMonthChange}
                                   >
-                                    {month}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                                    <SelectTrigger className="w-[120px]">
+                                      <SelectValue placeholder="Month" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {[
+                                        "January",
+                                        "February",
+                                        "March",
+                                        "April",
+                                        "May",
+                                        "June",
+                                        "July",
+                                        "August",
+                                        "September",
+                                        "October",
+                                        "November",
+                                        "December",
+                                      ].map((month, index) => (
+                                        <SelectItem
+                                          key={month}
+                                          value={index.toString()}
+                                        >
+                                          {month}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
 
-                            <Select
-                              value={
-                                field.value
-                                  ? getYear(field.value).toString()
-                                  : getYear(new Date()).toString()
-                              }
-                              onValueChange={handleYearChange}
-                            >
-                              <SelectTrigger className="w-[100px]">
-                                <SelectValue placeholder="Year" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {Array.from({ length: 10 }, (_, i) => {
-                                  const year = getYear(new Date()) - i + 5;
-                                  return (
-                                    <SelectItem
-                                      key={year}
-                                      value={year.toString()}
-                                    >
-                                      {year}
-                                    </SelectItem>
-                                  );
-                                })}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={(date) => {
-                              field.onChange(date);
-                              setExamCalendarDate(date);
-                            }}
-                            defaultMonth={examCalendarDate}
-                            month={examCalendarDate}
-                            initialFocus
-                          />
-                        </div>
-                      </PopoverContent>
-                    </Popover>
-                    <FormDescription>
-                      Date when the patient should have their exam
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                );
-              }}
-            />
+                                  <Select
+                                    value={
+                                      field.value
+                                        ? getYear(field.value).toString()
+                                        : getYear(new Date()).toString()
+                                    }
+                                    onValueChange={handleYearChange}
+                                  >
+                                    <SelectTrigger className="w-[100px]">
+                                      <SelectValue placeholder="Year" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {Array.from({ length: 125 }, (_, i) => {
+                                        const year = getYear(new Date()) - i;
+                                        return (
+                                          <SelectItem
+                                            key={year}
+                                            value={year.toString()}
+                                          >
+                                            {year}
+                                          </SelectItem>
+                                        );
+                                      })}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <Calendar
+                                  mode="single"
+                                  selected={field.value}
+                                  onSelect={(date) => {
+                                    field.onChange(date);
+                                    setBirthCalendarDate(date);
+                                  }}
+                                  defaultMonth={birthCalendarDate}
+                                  month={birthCalendarDate}
+                                  disabled={(date) =>
+                                    date > new Date() ||
+                                    date < new Date("1900-01-01")
+                                  }
+                                  initialFocus
+                                />
+                              </div>
+                            </PopoverContent>
+                          </Popover>
+                          <FormMessage />
+                        </FormItem>
+                      );
+                    }}
+                  />
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="email"
-                        placeholder="patient@example.com"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                  <FormField
+                    control={form.control}
+                    name="gender"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Gender</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select gender" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="male">Male</SelectItem>
+                            <SelectItem value="female">Female</SelectItem>
+                            <SelectItem value="other">Other</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
 
-              <FormField
-                control={form.control}
-                name="phone"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Phone</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Phone number" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                <div className="grid gap-4 md:grid-cols-2">
+                  <FormField
+                    control={form.control}
+                    name="rg"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>RG</FormLabel>
+                        <FormControl>
+                          <Input placeholder="RG document" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="cpf"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>CPF</FormLabel>
+                        <FormControl>
+                          <Input placeholder="CPF document" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
             </div>
 
-            <FormField
-              control={form.control}
-              name="address"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Address</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Patient address" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {/* Contact Data Section */}
+            <div className="mb-6">
+              <h3 className="text-lg font-medium mb-4">Contact Data</h3>
+              <div className="space-y-4">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="email"
+                            placeholder="patient@example.com"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="phone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Phone</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Phone number" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <FormField
+                  control={form.control}
+                  name="address"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Address</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Patient address" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+
+            {/* Employer Data Section */}
+            <div className="mb-6">
+              <h3 className="text-lg font-medium mb-4">Employer Data</h3>
+              <div className="space-y-4">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <FormField
+                    control={form.control}
+                    name="sector"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Sector</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Work sector" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="position"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Position</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Work position" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+            </div>
 
             {showClinicSelector && clinics.length > 0 && (
               <FormField
