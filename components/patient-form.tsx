@@ -43,24 +43,24 @@ import {
 import { cn } from "@/lib/utils";
 import { CalendarIcon } from "lucide-react";
 
-// Define the form schema with Zod
+// Define o esquema do formulário com Zod
 const formSchema = z.object({
   name: z.string().min(2, {
-    message: "Patient name must be at least 2 characters.",
+    message: "O nome do paciente deve ter pelo menos 2 caracteres.",
   }),
   birth_date: z.date().optional(),
   gender: z.string().optional(),
   email: z
     .string()
     .email({
-      message: "Please enter a valid email address.",
+      message: "Por favor, insira um endereço de e-mail válido.",
     })
     .optional()
     .or(z.literal("")),
   phone: z.string().optional(),
   address: z.string().optional(),
   clinic_id: z.string().optional(),
-  // New fields from database structure
+  // Novos campos da estrutura do banco de dados
   rg: z.string().optional().or(z.literal("")),
   cpf: z.string().optional().or(z.literal("")),
   sector: z.string().optional().or(z.literal("")),
@@ -127,9 +127,9 @@ export function PatientForm({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Patient Information</CardTitle>
+        <CardTitle>Informações do Paciente</CardTitle>
         <CardDescription>
-          Enter the details for the new patient.
+          Insira os detalhes para o novo paciente.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -138,18 +138,18 @@ export function PatientForm({
             onSubmit={form.handleSubmit(handleSubmit)}
             className="space-y-6"
           >
-            {/* Patient Data Section */}
+            {/* Seção de Dados do Paciente */}
             <div className="mb-6">
-              <h3 className="text-lg font-medium mb-4">Patient Data</h3>
+              <h3 className="text-lg font-medium mb-4">Dados do Paciente</h3>
               <div className="space-y-4">
                 <FormField
                   control={form.control}
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Patient Name</FormLabel>
+                      <FormLabel>Nome do Paciente</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter patient full name" {...field} />
+                        <Input placeholder="Insira o nome completo do paciente" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -188,7 +188,7 @@ export function PatientForm({
 
                       return (
                         <FormItem className="flex flex-col">
-                          <FormLabel>Date of Birth</FormLabel>
+                          <FormLabel>Data de Nascimento</FormLabel>
                           <Popover>
                             <PopoverTrigger asChild>
                               <FormControl>
@@ -202,7 +202,7 @@ export function PatientForm({
                                   {field.value ? (
                                     format(field.value, "PPP")
                                   ) : (
-                                    <span>Pick a date</span>
+                                    <span>Selecione uma data</span>
                                   )}
                                   <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                                 </Button>
@@ -220,22 +220,22 @@ export function PatientForm({
                                     onValueChange={handleMonthChange}
                                   >
                                     <SelectTrigger className="w-[120px]">
-                                      <SelectValue placeholder="Month" />
+                                      <SelectValue placeholder="Mês" />
                                     </SelectTrigger>
                                     <SelectContent>
                                       {[
-                                        "January",
-                                        "February",
-                                        "March",
-                                        "April",
-                                        "May",
-                                        "June",
-                                        "July",
-                                        "August",
-                                        "September",
-                                        "October",
-                                        "November",
-                                        "December",
+                                        "Janeiro",
+                                        "Fevereiro",
+                                        "Março",
+                                        "Abril",
+                                        "Maio",
+                                        "Junho",
+                                        "Julho",
+                                        "Agosto",
+                                        "Setembro",
+                                        "Outubro",
+                                        "Novembro",
+                                        "Dezembro",
                                       ].map((month, index) => (
                                         <SelectItem
                                           key={month}
@@ -256,7 +256,7 @@ export function PatientForm({
                                     onValueChange={handleYearChange}
                                   >
                                     <SelectTrigger className="w-[100px]">
-                                      <SelectValue placeholder="Year" />
+                                      <SelectValue placeholder="Ano" />
                                     </SelectTrigger>
                                     <SelectContent>
                                       {Array.from({ length: 125 }, (_, i) => {
@@ -302,20 +302,20 @@ export function PatientForm({
                     name="gender"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Gender</FormLabel>
+                        <FormLabel>Gênero</FormLabel>
                         <Select
                           onValueChange={field.onChange}
                           defaultValue={field.value}
                         >
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select gender" />
+                              <SelectValue placeholder="Selecione o gênero" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="male">Male</SelectItem>
-                            <SelectItem value="female">Female</SelectItem>
-                            <SelectItem value="other">Other</SelectItem>
+                            <SelectItem value="male">Masculino</SelectItem>
+                            <SelectItem value="female">Feminino</SelectItem>
+                            <SelectItem value="other">Outro</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -332,7 +332,7 @@ export function PatientForm({
                       <FormItem>
                         <FormLabel>RG</FormLabel>
                         <FormControl>
-                          <Input placeholder="RG document" {...field} />
+                          <Input placeholder="Documento RG" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -346,7 +346,7 @@ export function PatientForm({
                       <FormItem>
                         <FormLabel>CPF</FormLabel>
                         <FormControl>
-                          <Input placeholder="CPF document" {...field} />
+                          <Input placeholder="Documento CPF" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -356,9 +356,9 @@ export function PatientForm({
               </div>
             </div>
 
-            {/* Contact Data Section */}
+            {/* Seção de Dados de Contato */}
             <div className="mb-6">
-              <h3 className="text-lg font-medium mb-4">Contact Data</h3>
+              <h3 className="text-lg font-medium mb-4">Dados de Contato</h3>
               <div className="space-y-4">
                 <div className="grid gap-4 md:grid-cols-2">
                   <FormField
@@ -370,7 +370,7 @@ export function PatientForm({
                         <FormControl>
                           <Input
                             type="email"
-                            placeholder="patient@example.com"
+                            placeholder="paciente@exemplo.com"
                             {...field}
                           />
                         </FormControl>
@@ -384,9 +384,9 @@ export function PatientForm({
                     name="phone"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Phone</FormLabel>
+                        <FormLabel>Telefone</FormLabel>
                         <FormControl>
-                          <Input placeholder="Phone number" {...field} />
+                          <Input placeholder="Número de telefone" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -399,9 +399,9 @@ export function PatientForm({
                   name="address"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Address</FormLabel>
+                      <FormLabel>Endereço</FormLabel>
                       <FormControl>
-                        <Input placeholder="Patient address" {...field} />
+                        <Input placeholder="Endereço do paciente" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -410,9 +410,9 @@ export function PatientForm({
               </div>
             </div>
 
-            {/* Employer Data Section */}
+            {/* Seção de Dados do Empregador */}
             <div className="mb-6">
-              <h3 className="text-lg font-medium mb-4">Employer Data</h3>
+              <h3 className="text-lg font-medium mb-4">Dados do Empregador</h3>
               <div className="space-y-4">
                 <div className="grid gap-4 md:grid-cols-2">
                   <FormField
@@ -420,9 +420,9 @@ export function PatientForm({
                     name="sector"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Sector</FormLabel>
+                        <FormLabel>Setor</FormLabel>
                         <FormControl>
-                          <Input placeholder="Work sector" {...field} />
+                          <Input placeholder="Setor de trabalho" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -434,9 +434,9 @@ export function PatientForm({
                     name="position"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Position</FormLabel>
+                        <FormLabel>Cargo</FormLabel>
                         <FormControl>
-                          <Input placeholder="Work position" {...field} />
+                          <Input placeholder="Cargo de trabalho" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -452,14 +452,14 @@ export function PatientForm({
                 name="clinic_id"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Clinic</FormLabel>
+                    <FormLabel>Clínica</FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value}
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select clinic" />
+                          <SelectValue placeholder="Selecione a clínica" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -471,7 +471,7 @@ export function PatientForm({
                       </SelectContent>
                     </Select>
                     <FormDescription>
-                      Select the clinic for this patient
+                      Selecione a clínica para este paciente
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -486,10 +486,10 @@ export function PatientForm({
                 className="mr-2"
                 onClick={() => router.push("/dashboard")}
               >
-                Cancel
+                Cancelar
               </Button>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Adding..." : "Add Patient"}
+                {isSubmitting ? "Adicionando..." : "Adicionar Paciente"}
               </Button>
             </CardFooter>
           </form>

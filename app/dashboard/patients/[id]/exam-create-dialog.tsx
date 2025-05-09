@@ -47,9 +47,9 @@ import { cn } from "@/lib/utils";
 
 // Define the form schema
 const formSchema = z.object({
-  exam_type: z.string().min(1, { message: "Exam type is required" }),
+  exam_type: z.string().min(1, { message: "Tipo de exame é obrigatório" }),
   exam_date: z.date({
-    required_error: "Exam date is required",
+    required_error: "Data do exame é obrigatória",
   }),
   result: z.string().optional().or(z.literal("")),
   notes: z.string().optional().or(z.literal("")),
@@ -101,7 +101,7 @@ export function ExamCreateDialog({ patientId }: ExamCreateDialogProps) {
         throw error;
       }
 
-      toast.success("Exam created successfully");
+      toast.success("Exame criado com sucesso");
 
       // Close the dialog and refresh the page
       setOpen(false);
@@ -109,7 +109,7 @@ export function ExamCreateDialog({ patientId }: ExamCreateDialogProps) {
       router.refresh();
     } catch (error: any) {
       console.error("Error creating exam:", error);
-      toast.error(error.message || "There was an error creating the exam");
+      toast.error(error.message || "Ocorreu um erro ao criar o exame");
     } finally {
       setIsSubmitting(false);
     }
@@ -120,12 +120,12 @@ export function ExamCreateDialog({ patientId }: ExamCreateDialogProps) {
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="gap-1">
           <IconPlus className="h-4 w-4" />
-          Add Exam
+          Adicionar Exame
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[600px] md:max-w-[800px] lg:max-w-[900px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Create New Exam</DialogTitle>
+          <DialogTitle>Criar Novo Exame</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -135,10 +135,22 @@ export function ExamCreateDialog({ patientId }: ExamCreateDialogProps) {
                 name="exam_type"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Exam Type</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter exam type" {...field} />
-                    </FormControl>
+                    <FormLabel>Tipo de Exame</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o tipo de exame" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Admissional">Admissional</SelectItem>
+                        <SelectItem value="Demissional">Demissional</SelectItem>
+                        <SelectItem value="Periódico">Periódico</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -149,7 +161,7 @@ export function ExamCreateDialog({ patientId }: ExamCreateDialogProps) {
                 name="exam_date"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>Exam Date</FormLabel>
+                    <FormLabel>Data do Exame</FormLabel>
                     <Popover modal={true}>
                       <PopoverTrigger asChild>
                         <FormControl>
@@ -163,7 +175,7 @@ export function ExamCreateDialog({ patientId }: ExamCreateDialogProps) {
                             {field.value ? (
                               format(field.value, "PPP")
                             ) : (
-                              <span>Pick a date</span>
+                              <span>Selecione uma data</span>
                             )}
                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                           </Button>
@@ -189,23 +201,23 @@ export function ExamCreateDialog({ patientId }: ExamCreateDialogProps) {
                               }}
                             >
                               <SelectTrigger className="w-[120px]">
-                                <SelectValue placeholder="Month" />
+                                <SelectValue placeholder="Mês" />
                               </SelectTrigger>
                               <SelectContent>
                                 {
                                   [
-                                    "January",
-                                    "February",
-                                    "March",
-                                    "April",
-                                    "May",
-                                    "June",
-                                    "July",
-                                    "August",
-                                    "September",
-                                    "October",
-                                    "November",
-                                    "December",
+                                    "Janeiro",
+                                    "Fevereiro",
+                                    "Março",
+                                    "Abril",
+                                    "Maio",
+                                    "Junho",
+                                    "Julho",
+                                    "Agosto",
+                                    "Setembro",
+                                    "Outubro",
+                                    "Novembro",
+                                    "Dezembro",
                                   ].map((month, index) => (
                                     <SelectItem
                                       key={month}
@@ -235,7 +247,7 @@ export function ExamCreateDialog({ patientId }: ExamCreateDialogProps) {
                               }}
                             >
                               <SelectTrigger className="w-[100px]">
-                                <SelectValue placeholder="Year" />
+                                <SelectValue placeholder="Ano" />
                               </SelectTrigger>
                               <SelectContent>
                                 {Array.from({ length: 16 }, (_, i) => {
@@ -288,10 +300,10 @@ export function ExamCreateDialog({ patientId }: ExamCreateDialogProps) {
               name="result"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Result</FormLabel>
+                  <FormLabel>Resultado</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Enter exam result"
+                      placeholder="Insira o resultado do exame"
                       className="min-h-[100px]"
                       {...field}
                       value={field.value || ""}
@@ -307,10 +319,10 @@ export function ExamCreateDialog({ patientId }: ExamCreateDialogProps) {
               name="notes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Notes</FormLabel>
+                  <FormLabel>Observações</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Enter additional notes"
+                      placeholder="Insira observações adicionais"
                       className="min-h-[100px]"
                       {...field}
                       value={field.value || ""}
@@ -333,9 +345,9 @@ export function ExamCreateDialog({ patientId }: ExamCreateDialogProps) {
                     />
                   </FormControl>
                   <div className="space-y-1 leading-none">
-                    <FormLabel>Appeared on Exam</FormLabel>
+                    <FormLabel>Compareceu ao Exame</FormLabel>
                     <FormDescription>
-                      Check if the patient appeared for the exam
+                      Marque se o paciente compareceu ao exame
                     </FormDescription>
                   </div>
                 </FormItem>
@@ -348,10 +360,10 @@ export function ExamCreateDialog({ patientId }: ExamCreateDialogProps) {
                 variant="outline"
                 onClick={() => setOpen(false)}
               >
-                Cancel
+                Cancelar
               </Button>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Creating..." : "Create Exam"}
+                {isSubmitting ? "Criando..." : "Criar Exame"}
               </Button>
             </div>
           </form>

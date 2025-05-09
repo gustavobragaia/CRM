@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-// In your login form component
+// No seu componente de login
 import { getSupabaseClient } from "@/lib/supabase-client";
 
 export function LoginForm({
@@ -42,15 +42,15 @@ export function LoginForm({
       });
 
       if (error) {
-        console.error("Error logging in:", error.message);
+        console.error("Erro ao fazer login:", error.message);
         setError(error.message);
       } else {
-        // Direct navigation to dashboard without waiting
+        // Navegação direta para o dashboard sem esperar
         window.location.href = "/dashboard";
       }
     } catch (err) {
-      console.error("Unexpected error:", err);
-      setError("An unexpected error occurred");
+      console.error("Erro inesperado:", err);
+      setError("Ocorreu um erro inesperado");
     } finally {
       setIsLoading(false);
     }
@@ -60,9 +60,9 @@ export function LoginForm({
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
         <CardHeader>
-          <CardTitle>Login to your account</CardTitle>
+          <CardTitle>Entrar na sua conta</CardTitle>
           <CardDescription>
-            Enter your email below to login to your account
+            Digite seu email abaixo para entrar na sua conta
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -79,19 +79,19 @@ export function LoginForm({
                   id="email"
                   name="email"
                   type="email"
-                  placeholder="m@example.com"
+                  placeholder="m@exemplo.com"
                   required
                   disabled={isLoading}
                 />
               </div>
               <div className="grid gap-3">
                 <div className="flex items-center">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password">Senha</Label>
                   <a
                     href="#"
                     className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
                   >
-                    Forgot your password?
+                    Esqueceu sua senha?
                   </a>
                 </div>
                 <Input 
@@ -104,17 +104,17 @@ export function LoginForm({
               </div>
               <div className="flex flex-col gap-3">
                 <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? "Logging in..." : "Login"}
+                  {isLoading ? "Entrando..." : "Entrar"}
                 </Button>
                 <Button variant="outline" className="w-full" type="button">
-                  Login with Google
+                  Entrar com Google
                 </Button>
               </div>
             </div>
             <div className="mt-4 text-center text-sm">
-              Don&apos;t have an account?{" "}
+              Não tem uma conta?{" "}
               <a href="/signup" className="underline underline-offset-4">
-                Sign up
+                Cadastre-se
               </a>
             </div>
           </form>

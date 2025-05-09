@@ -20,7 +20,7 @@ export default function AddPatientPage() {
   >([]);
   const [loadingClinics, setLoadingClinics] = React.useState(false);
 
-  // Fetch clinics when component mounts if user is admin
+  // Buscar clínicas quando o componente é montado se o usuário for administrador
   React.useEffect(() => {
     async function fetchClinics() {
       if (user && user.role === "admin") {
@@ -35,8 +35,8 @@ export default function AddPatientPage() {
           if (error) throw error;
           setClinics(data || []);
         } catch (error: any) {
-          console.error("Error fetching clinics:", error);
-          toast.error("Failed to load clinics");
+          console.error("Erro ao buscar clínicas:", error);
+          toast.error("Falha ao carregar clínicas");
         } finally {
           setLoadingClinics(false);
         }
@@ -48,11 +48,11 @@ export default function AddPatientPage() {
     }
   }, [user, loading]);
 
-  // Handle form submission
+  // Lidar com o envio do formulário
   async function onSubmit(values: PatientFormValues) {
-    // Only allow admin or clinic users to submit the form
+    // Apenas permitir usuários administradores ou de clínica para enviar o formulário
     if (!user || (user.role !== "admin" && user.role !== "clinic")) {
-      toast.error("You don't have permission to add a patient");
+      toast.error("Você não tem permissão para adicionar um paciente");
       return;
     }
 
@@ -60,22 +60,22 @@ export default function AddPatientPage() {
     try {
       const supabase = getSupabaseClient();
 
-      // Determine the clinic_id based on user role
+      // Determinar o clinic_id com base na função do usuário
       let clinic_id;
       if (user.role === "admin") {
-        // If admin is adding a patient, they need to select a clinic
+        // Se o administrador estiver adicionando um paciente, ele precisa selecionar uma clínica
         if (!values.clinic_id) {
-          toast.error("Please select a clinic for this patient");
+          toast.error("Por favor, selecione uma clínica para este paciente");
           setIsSubmitting(false);
           return;
         }
         clinic_id = values.clinic_id;
       } else {
-        // If clinic user is adding a patient, use their clinic_id
+        // Se o usuário da clínica estiver adicionando um paciente, use o clinic_id dele
         clinic_id = user.clinic_id;
       }
 
-      // Create the patient record
+      // Criar o registro do paciente
       const { data, error } = await supabase
         .from("patients")
         .insert({
@@ -88,7 +88,7 @@ export default function AddPatientPage() {
           email: values.email || null,
           phone: values.phone || null,
           address: values.address || null,
-          // New fields from database structure
+          // Novos campos da estrutura do banco de dados
           rg: values.rg || null,
           cpf: values.cpf || null,
           sector: values.sector || null,
@@ -100,17 +100,17 @@ export default function AddPatientPage() {
 
       if (error) throw error;
 
-      toast.success("Patient added successfully!");
+      toast.success("Paciente adicionado com sucesso!");
       router.push("/dashboard");
     } catch (error: any) {
-      console.error("Error adding patient:", error);
-      toast.error(error.message || "Failed to add patient");
+      console.error("Erro ao adicionar paciente:", error);
+      toast.error(error.message || "Falha ao adicionar paciente");
     } finally {
       setIsSubmitting(false);
     }
   }
 
-  // Show loading state
+  // Mostrar estado de carregamento
   if (loading) {
     return (
       <SidebarProvider
@@ -125,14 +125,14 @@ export default function AddPatientPage() {
         <SidebarInset>
           <SiteHeader />
           <div className="flex flex-1 flex-col items-center justify-center">
-            <p>Loading...</p>
+            <p>Carregando...</p>
           </div>
         </SidebarInset>
       </SidebarProvider>
     );
   }
 
-  // Redirect if not admin or clinic user
+  // Redirecionar se não for administrador ou usuário de clínica
   if (user && user.role !== "admin" && user.role !== "clinic") {
     router.push("/dashboard");
     return null;
@@ -155,17 +155,17 @@ export default function AddPatientPage() {
             <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
               <div className="px-4 lg:px-6">
                 <h1 className="text-2xl font-bold tracking-tight">
-                  Add New Patient
+                  Adicionar Novo Paciente
                 </h1>
                 <p className="text-muted-foreground">
-                  Create a new patient record
+                  Criar um novo registro de paciente
                 </p>
               </div>
 
               <div className="px-4 lg:px-6">
                 {loadingClinics && user?.role === "admin" ? (
                   <div className="flex items-center justify-center p-6">
-                    <p>Loading clinics...</p>
+                    <p>Carregando clínicas...</p>
                   </div>
                 ) : (
                   <PatientForm

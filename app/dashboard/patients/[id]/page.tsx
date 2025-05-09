@@ -36,8 +36,8 @@ export default async function PatientDetailPage({
     notFound();
   }
 
-  // Get clinic name
-  let clinicName = "Unknown Clinic";
+  // Obter nome da clínica
+  let clinicName = "Clínica Desconhecida";
   if (patient.clinic_id) {
     try {
       const clinic = await getClinicById(patient.clinic_id);
@@ -45,7 +45,7 @@ export default async function PatientDetailPage({
         clinicName = clinic.name;
       }
     } catch (error) {
-      console.error("Error fetching clinic:", error);
+      console.error("Erro ao buscar clínica:", error);
     }
   }
 
@@ -81,13 +81,13 @@ export default async function PatientDetailPage({
                   <Button variant="outline" size="sm" asChild className="gap-1">
                     <Link href="/dashboard/patients">
                       <IconArrowLeft className="h-4 w-4" />
-                      Back to Patients
+                      Voltar para Pacientes
                     </Link>
                   </Button>
                 </div>
 
                 <h1 className="text-2xl font-bold tracking-tight mb-4">
-                  Patient Details
+                  Detalhes do Paciente
                 </h1>
 
                 <Card>
@@ -112,13 +112,13 @@ export default async function PatientDetailPage({
                               {patient.name}
                             </h3>
                             <p className="text-sm   text-muted-foreground">
-                              {patient.email || "No email provided"}
+                              {patient.email || "Nenhum email fornecido"}
                             </p>
                           </div>
 
                           <div className="flex items-center gap-2">
                             <p className="text-sm font-medium text-muted-foreground">
-                              Employer Name:
+                              Nome do Empregador:
                             </p>
                             <p className="text-sm">{clinicName}</p>
                           </div>
@@ -132,13 +132,13 @@ export default async function PatientDetailPage({
                 <div className="mt-8"></div>
 
                 <h1 className="text-2xl font-bold tracking-tight mb-4">
-                  Existing Exams
+                  Exames Existentes
                 </h1>
 
                 <Card>
                   <CardHeader>
                     <div className="flex justify-between items-center">
-                      <CardTitle>Existing Exams</CardTitle>
+                      <CardTitle>Exames Existentes</CardTitle>
                       <ExamCreateDialog patientId={patient.id} />
                     </div>
                   </CardHeader>
@@ -146,11 +146,10 @@ export default async function PatientDetailPage({
                     {exams.length === 0 ? (
                       <div className="text-center py-6">
                         <p className="text-muted-foreground">
-                          No exams found for this patient.
+                          Nenhum exame encontrado para este paciente.
                         </p>
                         <p className="text-sm text-muted-foreground mt-2">
-                          Click the "Add Exam" button to create a new exam
-                          record.
+                          Clique no botão "Adicionar Exame" para criar um novo registro de exame.
                         </p>
                       </div>
                     ) : (
@@ -158,11 +157,11 @@ export default async function PatientDetailPage({
                         <Table>
                           <TableHeader>
                             <TableRow>
-                              <TableHead>Exam Type</TableHead>
-                              <TableHead>Date of Exam</TableHead>
-                              <TableHead>Result</TableHead>
-                              <TableHead>Notes</TableHead>
-                              <TableHead>Appeared on Exam</TableHead>
+                              <TableHead>Tipo de Exame</TableHead>
+                              <TableHead>Data do Exame</TableHead>
+                              <TableHead>Resultado</TableHead>
+                              <TableHead>Observações</TableHead>
+                              <TableHead>Compareceu ao Exame</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
@@ -180,7 +179,7 @@ export default async function PatientDetailPage({
                                   {exam.appeared_on_exam ? (
                                     <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
                                       <IconCheck className="h-3.5 w-3.5 mr-1" />
-                                      Yes
+                                      Sim
                                     </Badge>
                                   ) : (
                                     <Badge
@@ -188,7 +187,7 @@ export default async function PatientDetailPage({
                                       className="text-red-800"
                                     >
                                       <IconX className="h-3.5 w-3.5 mr-1" />
-                                      No
+                                      Não
                                     </Badge>
                                   )}
                                 </TableCell>

@@ -105,7 +105,7 @@ import {
 } from "@/components/ui/table";
 import { createBrowserClient } from "@/lib/supabase";
 
-// Define the patient schema with Zod
+// Define o esquema do paciente com Zod
 export const patientSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
@@ -122,7 +122,7 @@ export const patientSchema = z.object({
 
 export type Patient = z.infer<typeof patientSchema>;
 
-// Create a separate component for the drag handle
+// Cria um componente separado para a alça de arrastar
 function DragHandle({ id }: { id: string }) {
   const { attributes, listeners } = useSortable({
     id,
@@ -137,12 +137,12 @@ function DragHandle({ id }: { id: string }) {
       className="text-muted-foreground size-7 hover:bg-transparent"
     >
       <IconGripVertical className="text-muted-foreground size-3" />
-      <span className="sr-only">Drag to reorder</span>
+      <span className="sr-only">Arraste para reordenar</span>
     </Button>
   );
 }
 
-// Define the columns for the patients table
+// Define as colunas para a tabela de pacientes
 const columns: ColumnDef<Patient>[] = [
   {
     id: "drag",
@@ -159,7 +159,7 @@ const columns: ColumnDef<Patient>[] = [
             (table.getIsSomePageRowsSelected() && "indeterminate")
           }
           onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
+          aria-label="Selecionar todos"
         />
       </div>
     ),
@@ -168,7 +168,7 @@ const columns: ColumnDef<Patient>[] = [
         <Checkbox
           checked={row.getIsSelected()}
           onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
+          aria-label="Selecionar linha"
         />
       </div>
     ),
@@ -177,7 +177,7 @@ const columns: ColumnDef<Patient>[] = [
   },
   {
     accessorKey: "name",
-    header: "Patient Name",
+    header: "Nome do Paciente",
     cell: ({ row }) => {
       return <TableCellViewer patient={row.original} />;
     },
@@ -185,18 +185,18 @@ const columns: ColumnDef<Patient>[] = [
   },
   {
     accessorKey: "gender",
-    header: "Gender",
+    header: "Gênero",
     cell: ({ row }) => (
       <div className="w-24">
         <Badge variant="outline" className="text-muted-foreground px-1.5">
-          {row.original.gender || "Not specified"}
+          {row.original.gender || "Não especificado"}
         </Badge>
       </div>
     ),
   },
   {
     accessorKey: "birth_date",
-    header: "Date of Birth",
+    header: "Data de Nascimento",
     cell: ({ row }) => (
       <div>
         {row.original.birth_date
@@ -207,7 +207,7 @@ const columns: ColumnDef<Patient>[] = [
   },
   {
     accessorKey: "exam_date",
-    header: "Exam Date",
+    header: "Data do Exame",
     cell: ({ row }) => (
       <div>
         {row.original.exam_date
@@ -218,7 +218,7 @@ const columns: ColumnDef<Patient>[] = [
   },
   {
     accessorKey: "phone",
-    header: "Phone",
+    header: "Telefone",
     cell: ({ row }) => <div>{row.original.phone || "Not provided"}</div>,
   },
   {

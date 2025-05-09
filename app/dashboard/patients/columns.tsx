@@ -13,10 +13,29 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { IconDotsVertical, IconEdit, IconTrash } from "@tabler/icons-react";
+import {
+  IconDotsVertical,
+  IconEdit,
+  IconTrash,
+  IconChevronDown,
+  IconChevronRight,
+} from "@tabler/icons-react";
 import Link from "next/link";
+import { Exam } from "@/hooks/use-exams";
 
-// Define the patient schema with Zod
+// Define o esquema de exame com Zod
+export const examSchema = z.object({
+  id: z.string().uuid(),
+  patient_id: z.string().uuid(),
+  exam_type: z.string(),
+  exam_date: z.string(),
+  result: z.string().nullable(),
+  notes: z.string().nullable(),
+  created_at: z.string(),
+  appeared_on_exam: z.boolean().nullable(),
+});
+
+// Define o esquema de paciente com Zod
 export const patientSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
@@ -30,16 +49,56 @@ export const patientSchema = z.object({
   created_at: z.string(),
   active: z.boolean(),
   appeared_on_exam: z.boolean().nullable(),
-  // New fields from database structure
+  // Novos campos da estrutura do banco de dados
   rg: z.string().nullable().optional(),
   cpf: z.string().nullable().optional(),
   sector: z.string().nullable().optional(),
   position: z.string().nullable().optional(),
+  // Exames relacionados a este paciente
+  exams: z.array(examSchema).optional(),
+  // Campos adicionais para exibição
+  clinic_name: z.string().optional(),
+  exam_type: z.string().optional(),
 });
 
 export type Patient = z.infer<typeof patientSchema>;
 
-export const columns: ColumnDef<Patient>[] = [
+export const createColumns = (userRole: string): ColumnDef<Patient>[] => [
+  {
+    id: "expander",
+    header: () => null,
+    cell: ({ row }) => {
+      const exams = row.original.exams || [];
+      const hasExams = exams.length > 0;
+
+      return hasExams ? (
+        <div className="flex w-[40px] items-center">
+          <Button
+            variant="ghost"
+            onClick={() => row.toggleExpanded()}
+            className="p-0 h-8 w-8"
+          >
+            {row.getIsExpanded() ? (
+              <IconChevronDown className="h-4 w-4" />
+            ) : (
+              <IconChevronRight className="h-4 w-4" />
+            )}
+          </Button>
+          {hasExams && (
+            <Badge
+              variant="secondary"
+              className="ml-2 text-xs whitespace-nowrap"
+            >
+              {exams.length} exame{exams.length !== 1 ? "s" : ""}
+            </Badge>
+          )}
+        </div>
+      ) : null;
+    },
+    enableSorting: false,
+    enableHiding: false,
+    size: 80, // Define uma largura fixa para a coluna
+  },
   {
     id: "select",
     header: ({ table }) => (
@@ -49,14 +108,14 @@ export const columns: ColumnDef<Patient>[] = [
           (table.getIsSomePageRowsSelected() && "indeterminate")
         }
         onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
+        aria-label="Selecionar todos"
       />
     ),
     cell: ({ row }) => (
       <Checkbox
         checked={row.getIsSelected()}
         onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
+        aria-label="Selecionar linha"
       />
     ),
     enableSorting: false,
@@ -64,7 +123,7 @@ export const columns: ColumnDef<Patient>[] = [
   },
   {
     accessorKey: "name",
-    header: "Patient Name",
+    header: "Nome do Paciente",
     cell: ({ row }) => {
       return (
         <Link
@@ -78,70 +137,66 @@ export const columns: ColumnDef<Patient>[] = [
   },
   {
     accessorKey: "gender",
-    header: "Gender",
+    header: "Gênero",
     cell: ({ row }) => (
       <div className="w-24">
         <Badge variant="outline" className="text-muted-foreground px-1.5">
-          {row.original.gender || "Not specified"}
+          {row.original.gender || "Não especificado"}
         </Badge>
       </div>
     ),
   },
   {
-    accessorKey: "birth_date",
-    header: "Date of Birth",
+    accessorKey: "Date of Birth",
+    header: "Data de Nascimento",
     cell: ({ row }) => (
       <div>
         {row.original.birth_date
           ? format(new Date(row.original.birth_date), "PP")
-          : "Not specified"}
-      </div>
-    ),
-  },
-  {
-    accessorKey: "exam_date",
-    header: "Exam Date",
-    cell: ({ row }) => (
-      <div>
-        {row.original.exam_date
-          ? format(new Date(row.original.exam_date), "PP")
-          : "Not scheduled"}
+          : "Não especificado"}
       </div>
     ),
   },
   {
     accessorKey: "phone",
-    header: "Phone",
-    cell: ({ row }) => <div>{row.original.phone || "Not provided"}</div>,
+    header: "Telefone",
+    cell: ({ row }) => <div>{row.original.phone || "Não fornecido"}</div>,
   },
   {
-    accessorKey: "Appeared on exam",
-    header: "Exam Status",
-    cell: ({ row }) => (
-      <div className="w-28">
-        <Badge
-          variant={
-            row.original.appeared_on_exam === true
-              ? "default"
-              : row.original.appeared_on_exam === false
-              ? "destructive"
-              : "outline"
-          }
-          className={`px-1.5 ${
-            row.original.appeared_on_exam === true
-              ? "bg-green-500 hover:bg-green-500/90 text-white"
-              : ""
-          }`}
-        >
-          {row.original.appeared_on_exam === true
-            ? "Attended"
-            : row.original.appeared_on_exam === false
-            ? "Missed"
-            : "Not recorded"}
-        </Badge>
-      </div>
-    ),
+    accessorKey: "email",
+    header: "Email",
+    cell: ({ row }) => <div>{row.original.email || "Não fornecido"}</div>,
   },
+  {
+    accessorKey: "rg",
+    header: "RG",
+    cell: ({ row }) => <div>{row.original.rg || "Não fornecido"}</div>,
+  },
+  {
+    accessorKey: "cpf",
+    header: "CPF",
+    cell: ({ row }) => <div>{row.original.cpf || "Não fornecido"}</div>,
+  },
+  {
+    accessorKey: "sector",
+    header: "Setor",
+    cell: ({ row }) => <div>{row.original.sector || "Não fornecido"}</div>,
+  },
+  {
+    accessorKey: "position",
+    header: "Cargo",
+    cell: ({ row }) => <div>{row.original.position || "Não fornecido"}</div>,
+  },
+  // Mostrar coluna de nome do empregador apenas para usuários administradores
+  ...(userRole === "admin"
+    ? [
+        {
+          accessorKey: "Employer name",
+          header: "Nome da Clínica",
+          cell: ({ row }) => <div>{row.original.clinic_name || "Desconhecido"}</div>,
+        } as ColumnDef<Patient>,
+      ]
+    : []),
   {
     id: "actions",
     cell: ({ row }) => {
@@ -151,7 +206,7 @@ export const columns: ColumnDef<Patient>[] = [
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
+              <span className="sr-only">Abrir menu</span>
               <IconDotsVertical className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
@@ -159,7 +214,7 @@ export const columns: ColumnDef<Patient>[] = [
             <DropdownMenuItem asChild>
               <Link href={`/dashboard/patients/${patient.id}`}>
                 <IconEdit className="mr-2 h-4 w-4" />
-                Edit
+                Editar
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
@@ -169,7 +224,7 @@ export const columns: ColumnDef<Patient>[] = [
             >
               <Link href={`/dashboard/patients/${patient.id}/deactivate`}>
                 <IconTrash className="mr-2 h-4 w-4" />
-                Deactivate
+                Desativar
               </Link>
             </DropdownMenuItem>
           </DropdownMenuContent>

@@ -27,17 +27,17 @@ import {
 } from "@/components/ui/sidebar";
 import { useCurrentUser } from "@/hooks/use-current-user";
 
-// Define static data
+// Define dados estáticos
 const staticData = {
-  // Default user data (will be overridden in the component)
+  // Dados padrão do usuário (serão substituídos no componente)
   user: {
-    name: "Guest",
+    name: "Convidado",
     email: "",
     avatar: "",
   },
   navMain: [
     {
-      title: "Dashboard",
+      title: "Painel",
       url: "/dashboard",
       icon: IconDashboard,
     },
@@ -47,39 +47,51 @@ const staticData = {
       icon: IconUsers,
     },
     {
-      title: "Adicionar Paciente",
-      url: "/dashboard/add-patient",
-      icon: IconUsers,
+      title: "Pacientes",
+      url: "#",
+
+      items: [
+        {
+          title: "Ver Pacientes",
+          url: "/dashboard/patients",
+          icon: IconUsers,
+        },
+        {
+          title: "Adicionar Paciente",
+          url: "/dashboard/add-patient",
+          icon: IconUsers,
+        },
+      ],
     },
   ],
   navClouds: [
     {
-      title: "Capture",
+      title: "Captura",
       icon: IconCamera,
       isActive: true,
       url: "#",
       items: [
         {
-          title: "Active Proposals",
+          title: "Propostas Ativas",
           url: "#",
         },
         {
-          title: "Archived",
+          title: "Arquivadas",
           url: "#",
         },
       ],
     },
     {
-      title: "Proposal",
+      title: "Proposta",
       icon: IconFileDescription,
       url: "#",
       items: [
         {
-          title: "Active Proposals",
+          title: "Propostas Ativas",
           url: "#",
         },
         {
-          title: "Archived",
+          title: "Arquivadas",
           url: "#",
         },
       ],
@@ -90,11 +102,11 @@ const staticData = {
       url: "#",
       items: [
         {
-          title: "Active Proposals",
+          title: "Propostas Ativas",
           url: "#",
         },
         {
-          title: "Archived",
+          title: "Arquivadas",
           url: "#",
         },
       ],
@@ -109,7 +121,7 @@ const staticData = {
   ],
   documents: [
     {
-      name: "Data Library",
+      name: "Biblioteca de Dados",
       url: "#",
       icon: IconDatabase,
     },
@@ -120,9 +132,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   // Use the hook inside the component function
   const { user } = useCurrentUser();
 
-  // Create the user data object with the current user info
+  // Cria o objeto de dados do usuário com as informações do usuário atual
   const userData = {
-    name: user?.name || "Guest",
+    name: user?.name || "Convidado",
     email: user?.email || "",
     avatar: user?.avatar || "",
   };
@@ -138,7 +150,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             >
               <a href="#">
                 <IconInnerShadowTop className="!size-5" />
-                <span className="text-base font-semibold">Acme Inc.</span>
+                <span className="text-base font-semibold">Acme Ltda.</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>

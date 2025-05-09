@@ -36,6 +36,8 @@ phone character varying(20) null,
 email character varying(255) null,
 created_at timestamp with time zone null default CURRENT_TIMESTAMP,
 active boolean null default true,
+"CNPJ" text null,
+social_reason text null,
 constraint clinics_pkey primary key (id),
 constraint clinics_user_id_fkey foreign KEY (user_id) references users (id) on delete CASCADE
 ) TABLESPACE pg_default;

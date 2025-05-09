@@ -15,10 +15,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 
-// In your signup form component
+// No seu componente de cadastro
 import { getSupabaseClient } from "@/lib/supabase-client";
 
-// Signup function
+// Função de cadastro
 const handleSignup = async (
   email: string,
   password: string,
@@ -27,7 +27,7 @@ const handleSignup = async (
 ) => {
   const supabase = getSupabaseClient();
 
-  // Create auth user
+  // Criar usuário de autenticação
   const { data: authData, error: authError } =
     await supabase.auth.signUp({
       email,
@@ -41,23 +41,23 @@ const handleSignup = async (
     });
 
   if (authError) {
-    console.error("Error signing up:", authError.message);
-    // Handle error
+    console.error("Erro ao cadastrar:", authError.message);
+    // Tratar erro
   } else {
-    // Create user record in your users table
+    // Criar registro de usuário na tabela de usuários
     const { error: userError } = await supabase.from("users").insert({
       id: authData.user?.id,
       name,
       email,
-      password: "HASHED_BY_SUPABASE", // Supabase handles password hashing
+      password: "HASHED_BY_SUPABASE", // Supabase gerencia a criptografia da senha
       user_type: userType,
     });
 
     if (userError) {
-      console.error("Error creating user record:", userError.message);
-      // Handle error
+      console.error("Erro ao criar registro de usuário:", userError.message);
+      // Tratar erro
     } else {
-      // Redirect or handle successful signup
+      // Redirecionar ou tratar cadastro bem-sucedido
       window.location.href = "/dashboard";
     }
   }
@@ -80,12 +80,12 @@ export function SignupForm({
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
     const name = formData.get("name") as string;
-    const userType = (formData.get("userType") as string) || "admin"; // Default value
+    const userType = (formData.get("userType") as string) || "admin"; // Valor padrão
 
-    // Validate password confirmation
+    // Validar confirmação de senha
     const confirmPassword = formData.get("confirmPassword") as string;
     if (password !== confirmPassword) {
-      setError("Passwords do not match");
+      setError("As senhas não coincidem");
       setIsLoading(false);
       return;
     }
@@ -93,9 +93,9 @@ export function SignupForm({
     try {
       await handleSignup(email, password, name, userType);
     } catch (err) {
-      console.error("Signup error:", err);
+      console.error("Erro de cadastro:", err);
       setError(
-        err instanceof Error ? err.message : "An unexpected error occurred"
+        err instanceof Error ? err.message : "Ocorreu um erro inesperado"
       );
       setIsLoading(false);
     }
@@ -105,9 +105,9 @@ export function SignupForm({
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
         <CardHeader>
-          <CardTitle>Create an account</CardTitle>
+          <CardTitle>Criar uma conta</CardTitle>
           <CardDescription>
-            Enter your details below to create your account
+            Digite seus dados abaixo para criar sua conta
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -119,12 +119,12 @@ export function SignupForm({
                 </div>
               )}
               <div className="grid gap-3">
-                <Label htmlFor="name">Full Name</Label>
+                <Label htmlFor="name">Nome Completo</Label>
                 <Input
                   id="name"
                   name="name"
                   type="text"
-                  placeholder="John Doe"
+                  placeholder="João Silva"
                   required
                   disabled={isLoading}
                 />
@@ -135,13 +135,13 @@ export function SignupForm({
                   id="email"
                   name="email"
                   type="email"
-                  placeholder="m@example.com"
+                  placeholder="m@exemplo.com"
                   required
                   disabled={isLoading}
                 />
               </div>
               <div className="grid gap-3">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">Senha</Label>
                 <Input
                   id="password"
                   name="password"
@@ -151,7 +151,7 @@ export function SignupForm({
                 />
               </div>
               <div className="grid gap-3">
-                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <Label htmlFor="confirmPassword">Confirmar Senha</Label>
                 <Input
                   id="confirmPassword"
                   name="confirmPassword"
@@ -163,17 +163,17 @@ export function SignupForm({
               <input type="hidden" name="userType" value="admin" />
               <div className="flex flex-col gap-3">
                 <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? "Signing up..." : "Sign Up"}
+                  {isLoading ? "Cadastrando..." : "Cadastrar"}
                 </Button>
                 <Button variant="outline" className="w-full" type="button">
-                  Sign Up with Google
+                  Cadastrar com Google
                 </Button>
               </div>
             </div>
             <div className="mt-4 text-center text-sm">
-              Already have an account?{" "}
+              Já possui uma conta?{" "}
               <Link href="/login" className="underline underline-offset-4">
-                Login
+                Entrar
               </Link>
             </div>
           </form>

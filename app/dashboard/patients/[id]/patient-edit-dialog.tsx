@@ -23,12 +23,12 @@ export function PatientEditDialog({ patientData }: PatientEditDialogProps) {
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="gap-1">
           <IconEdit className="h-4 w-4" />
-          Edit Patient
+          Editar Paciente
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[600px] md:max-w-[800px] lg:max-w-[900px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Edit Patient Information</DialogTitle>
+          <DialogTitle>Editar Informações do Paciente</DialogTitle>
         </DialogHeader>
         <PatientFormComponent patientData={patientData} />
       </DialogContent>

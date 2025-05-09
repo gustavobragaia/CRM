@@ -15,13 +15,20 @@ export default function AddClinicPage() {
   const router = useRouter();
   const { user, loading } = useCurrentUser();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  
+  // Redirecionar se não for administrador usando useEffect
+  React.useEffect(() => {
+    if (user && user.role !== "admin") {
+      router.push("/dashboard");
+    }
+  }, [user, router]);
 
-  // Handle form submission
+  // Lidar com o envio do formulário
   async function onSubmit(values: ClinicFormValues) {
-    // Only allow admin users to submit the form
-    // Note: In a real app, you'd check this on the server side too
+    // Apenas permitir usuários administradores para enviar o formulário
+    // Nota: Em um aplicativo real, você verificaria isso também no lado do servidor
     if (!user || user.role !== "admin") {
-      toast.error("You don't have permission to add a clinic");
+      toast.error("Você não tem permissão para adicionar uma clínica");
       return;
     }
 
@@ -29,33 +36,45 @@ export default function AddClinicPage() {
     try {
       const supabase = getSupabaseClient();
 
-      // 1. Create a new user with the clinic role
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: values.email,
-        password: values.password,
-        options: {
+      // 1. Criar um novo usuário sem afetar a sessão atual do admin
+      // Usando a API direta do Supabase para não afetar a sessão atual
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/signup`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+        },
+        body: JSON.stringify({
+          email: values.email,
+          password: values.password,
           data: {
             full_name: values.name,
             user_type: "clinic",
+            role: "clinic",
           },
-        },
+        }),
       });
+      
+      const authData = await response.json();
+      
+      if (!response.ok) {
+        throw new Error('Falha ao criar usuário: ' + JSON.stringify(authData));
+      }
 
-      if (authError) throw authError;
-
-      if (authData.user) {
-        // 2. Create a record in the users table
+      if (authData && authData.user) {
+        // 2. Criar um registro na tabela de usuários primeiro
         const { error: userError } = await supabase.from("users").insert({
           id: authData.user.id,
           name: values.name,
           email: values.email,
           password: values.password,
           user_type: "clinic",
+          // clinic_id será atualizado depois
         });
 
         if (userError) throw userError;
-
-        // 3. Create the clinic record in the clinics table
+        
+        // 3. Criar um registro na tabela de clínicas
         const { data: clinicData, error: clinicError } = await supabase
           .from("clinics")
           .insert({
@@ -64,13 +83,15 @@ export default function AddClinicPage() {
             address: values.address || null,
             phone: values.phone || null,
             email: values.email,
+            CNPJ: values.CNPJ || null,
+            social_reason: values.social_reason || null,
           })
           .select("id")
           .single();
 
         if (clinicError) throw clinicError;
-
-        // 4. Update the user record with the clinic_id
+        
+        // 4. Atualizar o registro do usuário com o clinic_id
         if (clinicData) {
           const { error: userUpdateError } = await supabase
             .from("users")
@@ -79,32 +100,38 @@ export default function AddClinicPage() {
 
           if (userUpdateError) throw userUpdateError;
         }
-
-        // 5. Send password reset email to the clinic user
-        const { error: resetError } = await supabase.auth.resetPasswordForEmail(
-          values.email,
-          { redirectTo: `${window.location.origin}/reset-password` }
-        );
-
-        if (resetError) {
-          console.error("Error sending password reset email:", resetError);
-          // Continue anyway since the user was created successfully
+        
+        // 5. Atualizar os metadados do usuário na autenticação para incluir clinic_id
+        const { error: updateUserError } = await supabase.auth.updateUser({
+          data: {
+            clinic_id: clinicData?.id,
+            role: "clinic",
+          }
+        });
+        
+        if (updateUserError) {
+          console.error("Erro ao atualizar metadados do usuário:", updateUserError);
+          // Continuar mesmo assim, já que o usuário e a clínica foram criados
         }
+        
+        // 5. Opcional: Enviar email de boas-vindas (não de redefinição de senha)
+        // Isso permite que o usuário faça login com a senha definida pelo admin
+        // Se quiser enviar um email de boas-vindas, use um serviço de email separado
 
         toast.success(
-          "Clinic added successfully! A password reset link has been sent to their email."
+          "Clínica adicionada com sucesso! O usuário da clínica pode fazer login imediatamente com as credenciais fornecidas."
         );
         router.push("/dashboard");
       }
     } catch (error: any) {
-      console.error("Error adding clinic:", error);
-      toast.error(error.message || "Failed to add clinic");
+      console.error("Erro ao adicionar clínica:", error);
+      toast.error(error.message || "Falha ao adicionar clínica");
     } finally {
       setIsSubmitting(false);
     }
   }
 
-  // Show loading state or redirect if not admin
+  // Mostrar estado de carregamento ou redirecionar se não for administrador
   if (loading) {
     return (
       <SidebarProvider
@@ -119,16 +146,15 @@ export default function AddClinicPage() {
         <SidebarInset>
           <SiteHeader />
           <div className="flex flex-1 flex-col items-center justify-center">
-            <p>Loading...</p>
+            <p>Carregando...</p>
           </div>
         </SidebarInset>
       </SidebarProvider>
     );
   }
 
-  // Redirect if not admin (in a real app, you'd handle this server-side)
-  if (user && user.role !== "admin") {
-    router.push("/dashboard");
+  // Retornar null enquanto redireciona
+  if (user && user.role !== "admin" && !loading) {
     return null;
   }
 
@@ -149,10 +175,10 @@ export default function AddClinicPage() {
             <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
               <div className="px-4 lg:px-6">
                 <h1 className="text-2xl font-bold tracking-tight">
-                  Add New Clinic
+                  Adicionar Nova Clínica
                 </h1>
                 <p className="text-muted-foreground">
-                  Create a new clinic user account
+                  Criar uma nova conta de usuário de clínica
                 </p>
               </div>
 

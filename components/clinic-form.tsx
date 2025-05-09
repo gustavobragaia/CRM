@@ -21,19 +21,21 @@ import {
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { getSupabaseClient } from "@/lib/supabase-client";
 
-// Define the form schema with Zod
+// Define o esquema do formulário com Zod
 const formSchema = z.object({
   name: z.string().min(2, {
-    message: "Clinic name must be at least 2 characters.",
+    message: "O nome da clínica deve ter pelo menos 2 caracteres.",
   }),
   email: z.string().email({
-    message: "Please enter a valid email address.",
+    message: "Por favor, insira um endereço de e-mail válido.",
   }),
   password: z.string().min(8, {
-    message: "Password must be at least 8 characters.",
+    message: "A senha deve ter pelo menos 8 caracteres.",
   }),
   address: z.string().optional(),
   phone: z.string().optional(),
+  CNPJ: z.string().optional(),
+  social_reason: z.string().optional(),
 });
 
 export type ClinicFormValues = z.infer<typeof formSchema>;
@@ -52,6 +54,8 @@ export function ClinicForm({
     password: "",
     address: "",
     phone: "",
+    CNPJ: "",
+    social_reason: "",
   },
   isSubmitting = false 
 }: ClinicFormProps) {
@@ -61,24 +65,25 @@ export function ClinicForm({
   const form = useForm<ClinicFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues,
+    mode: "onChange",
   });
 
-  // Handle form submission
+  // Manipula o envio do formulário
   const handleSubmit = async (values: ClinicFormValues) => {
     try {
       await onSubmit(values);
     } catch (error: any) {
-      console.error("Error in clinic form:", error);
-      toast.error(error.message || "An error occurred");
+      console.error("Erro no formulário da clínica:", error);
+      toast.error(error.message || "Ocorreu um erro");
     }
   };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Clinic Information</CardTitle>
+        <CardTitle>Informações da Clínica</CardTitle>
         <CardDescription>
-          Enter the details for the new clinic. This will create both a user account and a clinic record.
+          Insira os detalhes para a nova clínica. Isso criará tanto uma conta de usuário quanto um registro de clínica.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -90,9 +95,9 @@ export function ClinicForm({
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Clinic Name</FormLabel>
+                    <FormLabel>Nome da Clínica</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter clinic name" {...field} />
+                      <Input placeholder="Insira o nome da clínica" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -106,10 +111,10 @@ export function ClinicForm({
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="clinic@example.com" {...field} />
+                      <Input type="email" placeholder="clinica@exemplo.com" {...field} />
                     </FormControl>
                     <FormDescription>
-                      This will be used for login and communication.
+                      Isso será usado para login e comunicação.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -122,12 +127,12 @@ export function ClinicForm({
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password</FormLabel>
+                  <FormLabel>Senha</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="Create a password" {...field} />
+                    <Input type="password" placeholder="Crie uma senha" {...field} />
                   </FormControl>
                   <FormDescription>
-                    Must be at least 8 characters.
+                    Deve ter pelo menos 8 caracteres.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -140,9 +145,9 @@ export function ClinicForm({
                 name="address"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Address</FormLabel>
+                    <FormLabel>Endereço</FormLabel>
                     <FormControl>
-                      <Input placeholder="Clinic address (optional)" {...field} />
+                      <Input placeholder="Endereço da clínica (opcional)" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -154,9 +159,39 @@ export function ClinicForm({
                 name="phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Phone</FormLabel>
+                    <FormLabel>Telefone</FormLabel>
                     <FormControl>
-                      <Input placeholder="Phone number (optional)" {...field} />
+                      <Input placeholder="Número de telefone (opcional)" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            
+            <div className="grid gap-4 md:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="CNPJ"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>CNPJ</FormLabel>
+                    <FormControl>
+                      <Input placeholder="CNPJ da clínica (opcional)" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="social_reason"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Razão Social</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Razão social da clínica (opcional)" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -171,10 +206,10 @@ export function ClinicForm({
                 className="mr-2"
                 onClick={() => router.push("/dashboard")}
               >
-                Cancel
+                Cancelar
               </Button>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Adding..." : "Add Clinic"}
+                {isSubmitting ? "Adicionando..." : "Adicionar Clínica"}
               </Button>
             </CardFooter>
           </form>

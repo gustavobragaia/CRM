@@ -29,7 +29,7 @@ export function SectionCards() {
         setIsLoading(true);
         const supabase = getSupabaseClient();
         
-        // Get user metadata to access clinic_id
+        // Get user data including clinic_id
         const { data: userData, error: userError } = await supabase.auth.getUser();
         
         if (userError) {
@@ -39,8 +39,27 @@ export function SectionCards() {
           return;
         }
         
-        const userMetadata = userData.user?.user_metadata;
-        const userClinicId = userMetadata?.clinic_id;
+        // Get the user's clinic_id from the users table
+        let userClinicId = null;
+        
+        if (userData.user) {
+          // First check if the user exists in the users table
+          const { data: userRecords, error: userRecordError } = await supabase
+            .from('users')
+            .select('clinic_id')
+            .eq('id', userData.user.id);
+            
+          if (userRecordError) {
+            console.error('Error fetching user record:', userRecordError);
+          } else if (userRecords && userRecords.length > 0) {
+            userClinicId = userRecords[0].clinic_id;
+            console.log('Found clinic_id:', userClinicId);
+          } else {
+            console.log('User record not found in users table. Using metadata clinic_id if available.');
+            // Try to get clinic_id from user metadata as fallback
+            userClinicId = userData.user.user_metadata?.clinic_id || null;
+          }
+        }
         
         if (user?.role === 'admin') {
           // Get count of clinics from the clinics table (admin only)
@@ -100,20 +119,20 @@ export function SectionCards() {
   if (loading || isLoading) {
     return (
       <div className="grid grid-cols-1 gap-4 px-4 lg:px-6">
-        <p>Loading dashboard data...</p>
+        <p>Carregando dados do painel...</p>
       </div>
     );
   }
 
   return (
     <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
-      {/* ADMIN CARD - Quantity of ALL Patients - Only visible to admin users */}
+      {/* CARD DE ADMIN - Quantidade de TODOS os Pacientes - Visível apenas para usuários admin */}
       {user?.role === 'admin' && (
         <Card className="@container/card">
           <CardHeader>
-            <CardDescription>Total Patients (All Clinics)</CardDescription>
+            <CardDescription>Total de Pacientes (Todas as Clínicas)</CardDescription>
             <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-              {patientCount !== null ? patientCount : 'Loading...'}
+              {patientCount !== null ? patientCount : 'Carregando...'}
             </CardTitle>
             <CardAction>
               <Badge variant="outline">
@@ -125,19 +144,19 @@ export function SectionCards() {
           <CardFooter className="flex-col items-start gap-1.5 text-sm">
             <div className="line-clamp-1 flex gap-2 font-medium">
               <IconTrendingUp className="size-4" />
-              Active patients across all clinics
+              Pacientes ativos em todas as clínicas
             </div>
           </CardFooter>
         </Card>
       )}
       
-      {/* CLINIC CARD - Quantity of Patients of the current clinic - Visible to both admin and clinic users */}
+      {/* CARD DE CLÍNICA - Quantidade de Pacientes da clínica atual - Visível para usuários admin e de clínica */}
       {(user?.role === 'admin' || user?.role === 'clinic') && (
         <Card className="@container/card">
           <CardHeader>
-            <CardDescription>{user?.role === 'admin' ? 'Average Patients Per Clinic' : 'Your Clinic Patients'}</CardDescription>
+            <CardDescription>{user?.role === 'admin' ? 'Média de Pacientes Por Clínica' : 'Pacientes da Sua Clínica'}</CardDescription>
             <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-              {clinicPatientCount !== null ? clinicPatientCount : 'Loading...'}
+              {clinicPatientCount !== null ? clinicPatientCount : 'Carregando...'}
             </CardTitle>
             <CardAction>
               <Badge variant="outline">
@@ -150,20 +169,20 @@ export function SectionCards() {
             <div className="line-clamp-1 flex gap-2 font-medium">
               <IconTrendingUp className="size-4" />
               {user?.role === 'admin' 
-                ? 'Average number of patients per clinic' 
-                : 'Patients registered at your clinic'}
+                ? 'Número médio de pacientes por clínica' 
+                : 'Pacientes registrados na sua clínica'}
             </div>
           </CardFooter>
         </Card>
       )}
       
-      {/* ADMIN CARD - Quantity of Clinics - Only visible to admin users */}
+      {/* CARD DE ADMIN - Quantidade de Clínicas - Visível apenas para usuários admin */}
       {user?.role === 'admin' && (
         <Card className="@container/card">
           <CardHeader>
-            <CardDescription>Total Clinics</CardDescription>
+            <CardDescription>Total de Clínicas</CardDescription>
             <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-              {error ? 'Error' : clinicCount !== null ? clinicCount : 'Loading...'}
+              {error ? 'Erro' : clinicCount !== null ? clinicCount : 'Carregando...'}
             </CardTitle>
             <CardAction>
               <Badge variant="outline" className={error ? 'bg-red-50' : ''}>
@@ -172,24 +191,24 @@ export function SectionCards() {
                 ) : (
                   <IconTrendingUp />
                 )}
-                {error ? 'Error' : '+10%'}
+                {error ? 'Erro' : '+10%'}
               </Badge>
             </CardAction>
           </CardHeader>
           <CardFooter className="flex-col items-start gap-1.5 text-sm">
             <div className="line-clamp-1 flex gap-2 font-medium">
               {error ? (
-                <span className="text-red-500">Failed to load clinic data</span>
+                <span className="text-red-500">Falha ao carregar dados da clínica</span>
               ) : (
                 <>
                   <IconTrendingUp className="size-4" />
-                  Active clinics
+                  Clínicas ativas
                 </>
               )}
             </div>
             {!error && (
               <div className="text-muted-foreground">
-                Registered in the system
+                Registradas no sistema
               </div>
             )}
           </CardFooter>

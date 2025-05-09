@@ -2,12 +2,55 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase/client";
-import { Patient } from "./columns";
+import { Patient, createColumns } from "./columns";
 import { DataTable } from "./data-table";
-import { columns } from "./columns";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { AuthStatus } from "@/components/auth-status";
+import { Exam } from "@/hooks/use-exams";
+
+// Função auxiliar para adicionar exames aos pacientes
+async function addExamsToPatients(patients: any[]): Promise<Patient[]> {
+  // Cria um mapa para armazenar eficientemente exames por patient_id
+  const patientExamsMap = new Map<string, Exam[]>();
+  
+  // Obtém todos os IDs de pacientes
+  const patientIds = patients.map((patient) => patient.id);
+  
+  // Busca todos os exames para estes pacientes em uma única consulta
+  if (patientIds.length > 0) {
+    const { data: examsData, error: examsError } = await supabase
+      .from("exams")
+      .select("*")
+      .in("patient_id", patientIds)
+      .order("exam_date", { ascending: false });
+    
+    if (!examsError && examsData) {
+      // Agrupa exames por patient_id
+      examsData.forEach((exam) => {
+        const patientId = exam.patient_id;
+        if (!patientExamsMap.has(patientId)) {
+          patientExamsMap.set(patientId, []);
+        }
+        patientExamsMap.get(patientId)?.push(exam);
+      });
+    }
+  }
+  
+  // Adiciona exames a cada paciente e extrai o nome da clínica
+  return patients.map((patient) => {
+    // Extrai o nome da clínica dos dados unidos de clínicas
+    const clinicName = patient.clinics ? patient.clinics.name : "Desconhecido";
+    
+    return {
+      ...patient,
+      clinic_name: clinicName, // Adiciona clinic_name como uma propriedade plana
+      exams: patientExamsMap.get(patient.id) || [],
+      // Se o paciente tem exames, adiciona o exam_type do exame mais recente
+      exam_type: patientExamsMap.get(patient.id)?.[0]?.exam_type || "",
+    };
+  });
+}
 
 export function PatientsDataProvider() {
   const [user, setUser] = useState<any>(null);
@@ -16,7 +59,7 @@ export function PatientsDataProvider() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch user authentication status
+  // Busca o status de autenticação do usuário
   useEffect(() => {
     async function getUser() {
       try {
@@ -27,21 +70,21 @@ export function PatientsDataProvider() {
           throw error;
         }
 
-        console.log("Client-side user data:", data.user);
+        console.log("Dados do usuário do lado do cliente:", data.user);
         setUser(data.user);
 
         if (data.user) {
-          // Get user details including role
-          // First try to query by the auth user's email as it's more reliable
+          // Obtém detalhes do usuário incluindo função
+          // Primeiro tenta consultar pelo email do usuário autenticado, pois é mais confiável
           let { data: userData, error: userError } = await supabase
             .from("users")
             .select("*")
             .eq("email", data.user.email)
             .single();
 
-          // If no user found by email, try with the ID
+          // Se nenhum usuário for encontrado pelo email, tenta com o ID
           if (userError || !userData) {
-            console.log("No user found by email, trying with ID");
+            console.log("Nenhum usuário encontrado pelo email, tentando com ID");
             const { data: userDataById, error: userErrorById } = await supabase
               .from("users")
               .select("*")
@@ -56,28 +99,30 @@ export function PatientsDataProvider() {
             throw userError;
           }
 
-          console.log("User data from database:", userData);
+          console.log("Dados do usuário do banco de dados:", userData);
           setUserData(userData);
 
-          // Fetch patients based on user role
+          // Busca pacientes com base na função do usuário
           if (userData.user_type === "admin") {
-            // Admin can see all patients
+            // Administrador pode ver todos os pacientes
             const { data: patientsData, error: patientsError } = await supabase
               .from("patients")
-              .select("*")
+              .select("*, clinics(name)")
               .eq("active", true)
               .order("name", { ascending: true });
 
             if (patientsError) {
               throw patientsError;
             }
-
-            setPatients(patientsData || []);
+            
+            // Busca exames para todos os pacientes
+            const patientsWithExams = await addExamsToPatients(patientsData || []);
+            setPatients(patientsWithExams);
           } else if (userData.user_type === "clinic" && userData.clinic_id) {
-            // Clinic users can only see patients from their clinic
+            // Usuários de clínica só podem ver pacientes de sua clínica
             const { data: patientsData, error: patientsError } = await supabase
               .from("patients")
-              .select("*")
+              .select("*, clinics(name)")
               .eq("clinic_id", userData.clinic_id)
               .eq("active", true)
               .order("name", { ascending: true });
@@ -85,12 +130,14 @@ export function PatientsDataProvider() {
             if (patientsError) {
               throw patientsError;
             }
-
-            setPatients(patientsData || []);
+            
+            // Busca exames para pacientes da clínica
+            const patientsWithExams = await addExamsToPatients(patientsData || []);
+            setPatients(patientsWithExams);
           }
         }
       } catch (err: any) {
-        console.error("Error:", err);
+        console.error("Erro:", err);
         setError(err.message);
       } finally {
         setLoading(false);
@@ -101,18 +148,18 @@ export function PatientsDataProvider() {
   }, []);
 
   if (loading) {
-    return <div className="py-8 text-center">Loading patient data...</div>;
+    return <div className="py-8 text-center">Carregando dados dos pacientes...</div>;
   }
 
   if (error) {
     return (
       <div className="flex items-center justify-center py-8">
         <div className="max-w-md p-6 bg-white rounded-lg shadow-md border border-red-200">
-          <h2 className="text-xl font-bold mb-2 text-red-600">Error</h2>
+          <h2 className="text-xl font-bold mb-2 text-red-600">Erro</h2>
           <p className="mb-4 text-gray-600">{error}</p>
           <div className="mt-4">
             <Button asChild>
-              <Link href="/dashboard">Return to Dashboard</Link>
+              <Link href="/dashboard">Voltar ao Dashboard</Link>
             </Button>
           </div>
         </div>
@@ -127,7 +174,7 @@ export function PatientsDataProvider() {
           <AuthStatus />
         </div>
         <p className="text-gray-600 mb-4">
-          Please log in to view patient data.
+          Por favor, faça login para visualizar os dados dos pacientes.
         </p>
       </div>
     );
@@ -142,14 +189,14 @@ export function PatientsDataProvider() {
       <div className="py-8">
         <div className="max-w-md p-6 bg-white rounded-lg shadow-md border border-red-200">
           <h2 className="text-xl font-bold mb-2 text-red-600">
-            Access Restricted
+            Acesso Restrito
           </h2>
           <p className="mb-4 text-gray-600">
-            You don't have permission to view patient data.
+            Você não tem permissão para visualizar dados de pacientes.
           </p>
           <div className="mt-4">
             <Button asChild>
-              <Link href="/dashboard">Return to Dashboard</Link>
+              <Link href="/dashboard">Voltar ao Dashboard</Link>
             </Button>
           </div>
         </div>
@@ -160,9 +207,13 @@ export function PatientsDataProvider() {
   return (
     <div>
       {userData && userData.user_type === "clinic" && (
-        <h2 className="text-lg font-medium mb-4">Your Clinic's Patients</h2>
+        <h2 className="text-lg font-medium mb-4">Pacientes da Sua Clínica</h2>
       )}
-      <DataTable columns={columns} data={patients} />
+      <DataTable 
+        columns={createColumns(userData?.user_type || "")} 
+        data={patients} 
+        userRole={userData?.user_type || ""} 
+      />
     </div>
   );
 }
