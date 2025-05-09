@@ -2,17 +2,13 @@
 
 import * as React from "react";
 import {
-  IconCamera,
   IconDashboard,
-  IconDatabase,
-  IconFileAi,
-  IconFileDescription,
   IconInnerShadowTop,
   IconSettings,
   IconUsers,
 } from "@tabler/icons-react";
 
-import { NavDocuments } from "@/components/nav-documents";
+
 import { NavMain } from "@/components/nav-main";
 import { NavSecondary } from "@/components/nav-secondary";
 import { NavUser } from "@/components/nav-user";
@@ -64,54 +60,7 @@ const staticData = {
       ],
     },
   ],
-  navClouds: [
-    {
-      title: "Captura",
-      icon: IconCamera,
-      isActive: true,
-      url: "#",
-      items: [
-        {
-          title: "Propostas Ativas",
-          url: "#",
-        },
-        {
-          title: "Arquivadas",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Proposta",
-      icon: IconFileDescription,
-      url: "#",
-      items: [
-        {
-          title: "Propostas Ativas",
-          url: "#",
-        },
-        {
-          title: "Arquivadas",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Prompts",
-      icon: IconFileAi,
-      url: "#",
-      items: [
-        {
-          title: "Propostas Ativas",
-          url: "#",
-        },
-        {
-          title: "Arquivadas",
-          url: "#",
-        },
-      ],
-    },
-  ],
+
   navSecondary: [
     {
       title: "Configurações",
@@ -119,13 +68,7 @@ const staticData = {
       icon: IconSettings,
     },
   ],
-  documents: [
-    {
-      name: "Biblioteca de Dados",
-      url: "#",
-      icon: IconDatabase,
-    },
-  ],
+
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -158,7 +101,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={staticData.navMain} />
-        <NavDocuments items={staticData.documents} />
+
         <NavSecondary items={staticData.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
