@@ -1,6 +1,7 @@
 import { AppSidebar } from "@/components/app-sidebar";
 import { ChartAreaInteractive } from "@/components/chart-area-interactive";
 import { ExamAttendanceChart } from "@/components/exam-attendance-chart";
+import { ExamMonthlyChart } from "@/components/exam-monthly-chart";
 import { ExamTypeChart } from "@/components/exam-type-chart";
 import { SectionCards } from "@/components/section-cards";
 import { SiteHeader } from "@/components/site-header";
@@ -27,6 +28,9 @@ export default function Page() {
                 {/* <ChartAreaInteractive /> */}
                 <ExamTypeChart />
                 <ExamAttendanceChart />
+              </div>
+              <div className="px-4 lg:px-6 mt-4">
+                <ExamMonthlyChart />
               </div>
             </div>
           </div>

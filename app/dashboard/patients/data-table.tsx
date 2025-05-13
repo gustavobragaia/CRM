@@ -83,8 +83,28 @@ export function DataTable<TData extends object, TValue>({
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );
+  // Set default column visibility - only show selected columns initially
   const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
+    React.useState<VisibilityState>({
+      // Always visible columns
+      name: true,
+      exams: true,
+      actions: true,
+      // Hidden by default
+      gender: false,
+      "Date of Birth": false, // This matches the exact accessor key in columns.tsx
+      email: false,
+      phone: false,
+      address: false,
+      // Additional employee fields
+      rg: false,
+      cpf: true,
+      sector: false,
+      position: false,
+      // Admin-specific columns
+      "Employer name": userRole === "admin", // Matches the exact accessor key for clinic column
+      created_at: false,
+    });
   const [rowSelection, setRowSelection] = React.useState({});
   const [expanded, setExpanded] = React.useState<ExpandedState>({});
   const [pagination, setPagination] = React.useState({
@@ -209,41 +229,44 @@ export function DataTable<TData extends object, TValue>({
   }, [monthFilter, yearFilter, hasExamFilter, clinicFilter]);
 
   // Function to sort exams based on the selected sort order
-  const getSortedExams = React.useCallback((exams: Exam[]) => {
-    if (!exams || exams.length === 0) return [];
-    
-    return [...exams].sort((a, b) => {
-      if (!a.exam_date) return 1; // Null dates go to the end
-      if (!b.exam_date) return -1;
-      
-      const dateA = new Date(a.exam_date);
-      const dateB = new Date(b.exam_date);
-      
-      // Sort by year
-      if (sortOrder.startsWith('year')) {
-        const yearDiff = dateA.getFullYear() - dateB.getFullYear();
-        if (yearDiff !== 0) {
-          return sortOrder === 'year-asc' ? yearDiff : -yearDiff;
+  const getSortedExams = React.useCallback(
+    (exams: Exam[]) => {
+      if (!exams || exams.length === 0) return [];
+
+      return [...exams].sort((a, b) => {
+        if (!a.exam_date) return 1; // Null dates go to the end
+        if (!b.exam_date) return -1;
+
+        const dateA = new Date(a.exam_date);
+        const dateB = new Date(b.exam_date);
+
+        // Sort by year
+        if (sortOrder.startsWith("year")) {
+          const yearDiff = dateA.getFullYear() - dateB.getFullYear();
+          if (yearDiff !== 0) {
+            return sortOrder === "year-asc" ? yearDiff : -yearDiff;
+          }
+          // If years are the same, sort by month
+          const monthDiff = dateA.getMonth() - dateB.getMonth();
+          return sortOrder === "year-asc" ? monthDiff : -monthDiff;
         }
-        // If years are the same, sort by month
-        const monthDiff = dateA.getMonth() - dateB.getMonth();
-        return sortOrder === 'year-asc' ? monthDiff : -monthDiff;
-      }
-      // Sort by month
-      else if (sortOrder.startsWith('month')) {
-        const monthDiff = dateA.getMonth() - dateB.getMonth();
-        if (monthDiff !== 0) {
-          return sortOrder === 'month-asc' ? monthDiff : -monthDiff;
+        // Sort by month
+        else if (sortOrder.startsWith("month")) {
+          const monthDiff = dateA.getMonth() - dateB.getMonth();
+          if (monthDiff !== 0) {
+            return sortOrder === "month-asc" ? monthDiff : -monthDiff;
+          }
+          // If months are the same, sort by year
+          const yearDiff = dateA.getFullYear() - dateB.getFullYear();
+          return sortOrder === "month-asc" ? yearDiff : -yearDiff;
         }
-        // If months are the same, sort by year
-        const yearDiff = dateA.getFullYear() - dateB.getFullYear();
-        return sortOrder === 'month-asc' ? yearDiff : -yearDiff;
-      }
-      
-      return 0;
-    });
-  }, [sortOrder]);
-  
+
+        return 0;
+      });
+    },
+    [sortOrder]
+  );
+
   // Apply sorting based on sortOrder for the main table
   React.useEffect(() => {
     // The main table sorting remains by patient name
@@ -295,7 +318,10 @@ export function DataTable<TData extends object, TValue>({
         }
 
         // Apply date filters if the patient has exams
-        if ((monthFilter !== "all" || yearFilter !== "all") && exams.length > 0) {
+        if (
+          (monthFilter !== "all" || yearFilter !== "all") &&
+          exams.length > 0
+        ) {
           // Check if any exam matches our date filters
           const matchesDateFilter = exams.some((exam) => {
             if (!exam.exam_date) return false;
@@ -376,7 +402,9 @@ export function DataTable<TData extends object, TValue>({
                           <SelectValue placeholder="Selecione uma opção" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="all">Todos os Pacientes</SelectItem>
+                          <SelectItem value="all">
+                            Todos os Pacientes
+                          </SelectItem>
                           <SelectItem value="yes">Sim</SelectItem>
                           <SelectItem value="no">Não</SelectItem>
                         </SelectContent>
@@ -466,7 +494,9 @@ export function DataTable<TData extends object, TValue>({
                             <SelectValue placeholder="Selecione o empregador" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="all">Todos os Empregadores</SelectItem>
+                            <SelectItem value="all">
+                              Todos os Empregadores
+                            </SelectItem>
                             {clinics.map((clinic) => (
                               <SelectItem
                                 key={clinic.value}
